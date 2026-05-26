@@ -1,6 +1,12 @@
+#include <super-block.c>
 #define BLOCK_SIZE 1024
 #define TOTAL_BLOCKS 32
+#define MAX_FILES 16
 
-// 실제 데이터가 저장될 가상 디스크(데이터 블록 구역)
-char data_blocks[TOTAL_BLOCKS][BLOCK_SIZE];
+
+typedef struct {
+    superBlock super_block;
+    char data_blocks[TOTAL_BLOCKS][BLOCK_SIZE];
+    Inode inode_list[MAX_FILES];
+} virtualDisk;
 
