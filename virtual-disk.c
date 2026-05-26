@@ -8,5 +8,6 @@ typedef struct {
     superBlock super_block;
     char data_blocks[TOTAL_BLOCKS][BLOCK_SIZE];
     Inode inode_list[MAX_FILES];
+    int block_bitmap[TOTAL_BLOCKS];
 } virtualDisk;
 
