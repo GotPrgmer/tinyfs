@@ -58,9 +58,9 @@ int write_file(virtualDisk *disk, char *data, int iNodeNumber){
     disk -> block_bitmap[block_idx] = 1;
     // 저장할 inode의 블록idx 배열 idx 찾기
     // block_idx를 비어있는 inode에 연결된 블록에 넣기
-    for(int i = 0; i< sizeof(disk -> inode_list[iNodeNumber].blocks) / sizeof(int) ; i++){
-        if(disk -> inode_list[iNodeNumber].blocks[i] == -1){
-            disk -> inode_list[iNodeNumber].blocks[i] = block_idx;
+    for(int i = 0; i< sizeof(disk -> inode_list[iNodeNumber].blocksIdx) / sizeof(int) ; i++){
+        if(disk -> inode_list[iNodeNumber].blocksIdx[i] == -1){
+            disk -> inode_list[iNodeNumber].blocksIdx[i] = block_idx;
             break;
         }
     }
