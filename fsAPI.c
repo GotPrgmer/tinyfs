@@ -20,6 +20,16 @@ int create_file(virtualDisk *disk, char *name) {
     return free_inode_index;
 }
 
+/*
+파일은 어떻게 읽으면 될까?
+인풋은 어떤게 들어오는 걸까?
+inodeNumber는 들어와야할거같아.
+
+*/
+int read_file(virtualDisk *disk){
+
+}
+
 // 비트맵중에 비어있는 공간의 idx를 반환
 int find_free_block(virtualDisk *disk){
     for (int i = 0; i < TOTAL_BLOCKS ; i ++){
@@ -28,21 +38,19 @@ int find_free_block(virtualDisk *disk){
     return -1;
 }
 
-/*
-원하는 내용을 쓰고싶으면
-가상 디스크에 원하는 inodeNumber에 쓴다...?
-inodeNumber는 비어있는거? 아니지
-해당하는 파일 즉 파일을 가리키고 있는 inodeNumber를 써야하지.
-그럼 write file은 어떤 로직이 필요한건가?
-data block에 data를 써야해
-어떻게 쓰지?
-data 블록 중에 비어있는 블록 찾아서 inode의 블록 리스트에 넣기
-*/
+/**
+ * @brief 가상 디스크의 특정 i-node에 데이터를 블록 단위로 저장합니다.
+ * * @param disk 가상 디스크 구조체의 포인터
+ * @param data 저장할 문자열 데이터
+ * @param iNodeNumber 데이터를 저장할 대상 파일의 i-node 인덱스
+ * @return int 성공 시 0, 오류(디스크 용량 초과 등) 발생 시 -1
+ * * @details 
+ * 1. 전달받은 i-node 번호를 통해 파일의 정보를 가져옵니다.
+ * 2. 빈 데이터 블록을 찾아 비트맵을 업데이트하고 i-node의 블록 리스트에 연결합니다.
+ * 3. 블록 크기 제한(1024자)을 체크한 뒤 데이터를 실제 블록 공간에 복사합니다.
+ */
 // 블록 단위로만 저장을 하도록 설계.
 int write_file(virtualDisk *disk, char *data, int iNodeNumber){
-
-    // virtual disk의 블록 리스트에 data 넣기
-    // data가 블록사이즈 보다 작은지 확인
 
 
     // iNodeNumber에 할당된 inode찾기
@@ -65,24 +73,6 @@ int write_file(virtualDisk *disk, char *data, int iNodeNumber){
         }
     }
 
-    // // virtual disk에 data 저장하기
-    // int remainBlockStorage = 0;
-    // int availableSaveIdx = 0;
-    // for(int i=0; i<BLOCK_SIZE ; i++){
-    //     if(disk->data_blocks[block_idx][i] != -1){
-    //         availableSaveIdx = i;
-    //         remainBlockStorage = BLOCK_SIZE - (availableSaveIdx+1);
-    //         break;
-    //     }
-    // }
-    // if(remainBlockStorage < strlen(data)) return -1;
-    
-    // // block storage에 하나씩 data 넣기
-    // for(int i=0 ; i<strlen(data) ; i++){
-    //     disk->data_blocks[block_idx][i] = *(data+i);
-    // }
-    // disk->data_blocks[block_idx][strlen(data)] = '\0';
-
     // 데이터 크기가 블록 크기보다 작다면 안전하게 복사
     if (strlen(data) < BLOCK_SIZE) {
         strncpy(disk->data_blocks[block_idx], data, BLOCK_SIZE);
@@ -91,6 +81,42 @@ int write_file(virtualDisk *disk, char *data, int iNodeNumber){
         return -1;
     }
 
+}
+
+/**
+ * @brief 가상 디스크의 특정 블록 공간에 데이터를 한 글자씩 검사하며 저장합니다.
+ * @param disk 가상 디스크 구조체의 포인터
+ * @param block_idx 데이터를 저장할 대상 물리 블록 인덱스
+ * @param data 저장할 문자열 데이터
+ * @return int 성공 시 0, 블록 공간 부족 시 -1
+ */
+int save_data_to_block(virtualDisk *disk, int block_idx, char *data) {
+    int remainBlockStorage = 0;
+    int availableSaveIdx = 0;
+    
+    // 1. 해당 블록의 사용 가능한 남은 공간 계산
+    for(int i = 0; i < BLOCK_SIZE; i++) {
+        if(disk->data_blocks[block_idx][i] != -1) {
+            availableSaveIdx = i;
+            remainBlockStorage = BLOCK_SIZE - (availableSaveIdx + 1);
+            break;
+        }
+    }
+    
+    // 남은 공간이 넣으려는 데이터 크기보다 작으면 저장 실패
+    if(remainBlockStorage < strlen(data)) {
+        return -1;
+    }
+    
+    // 2. 블록에 데이터 한 글자씩 복사
+    for(int i = 0; i < strlen(data); i++) {
+        disk->data_blocks[block_idx][i] = *(data + i);
+    }
+    
+    // 문자열의 끝을 알리는 널(Null) 문자 삽입
+    disk->data_blocks[block_idx][strlen(data)] = '\0';
+
+    return 0;
 }
 
 
